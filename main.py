@@ -5,15 +5,48 @@ class Termometro():
     def __init__(self):
         self.custome = pygame.image.load("img/termometro1.png")
 
+class Selector():
+    __tipoUnidad = None
+    
+    def __init__(self, unidad = 'C'):
+        self.__customes = []
+        self.__customes.append(pygame.image.load("img/c.png"))
+        self.__customes.append(pygame.image.load("img/f.png"))
+        
+        self.__tipoUnidad = unidad
+        
+    def custome(self):
+        if self.__tipoUnidad == 'C':
+            return self.__customes[0]
+        else:
+            return self.__customes[1]
+        
+    def on_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if self.__tipoUnidad == 'C':
+                self.__tipoUnidad = 'F'
+            else:
+                self.__tipoUnidad ='C'
+        
+    
 class NumberInput():
     __value = 0
-    __strValue = '0'
+    __strValue = ''
     __position = [0, 0]
     __size = [0, 0]
     
     def __init__(self, value =0):
         self.__font = pygame.font.SysFont('Arial', 24)
         self.value(value)
+        
+    def on_event(self, event):
+        if event.type == KEYDOWN:
+            if event.unicode.isdigit() and len(self.__strValue) < 10:
+                self.__strValue += event.unicode
+                self.value(self.__strValue)
+            elif event.key == K_BACKSPACE:
+                self.__strValue = self.__strValue[0:-1]
+                self.value(self.__strValue)
         
     def render(self):
         textBlock = self.__font.render(self.__strValue, True, (74, 74, 74))
@@ -96,14 +129,15 @@ class mainApp():
     selector = None
     
     def __init__(self):
-        self.__screen = pygame.display.set_mode((310, 415))
+        self.__screen = pygame.display.set_mode((380, 415))
         pygame.display.set_caption('Termómetro')
-        self.__screen.fill((142, 204, 80))
+        
         
         self.termometro = Termometro()
-        self.entrada = NumberInput('21')
-        self.entrada.pos((150, 58))
+        self.entrada = NumberInput('')
+        self.entrada.pos((180, 58))
         self.entrada.size((133, 30))
+        self.selector = Selector()
         
     def __on_close(self):
         pygame.quit()
@@ -115,12 +149,19 @@ class mainApp():
                 if event.type == QUIT:
                     self.__on_close()
                     
+                self.entrada.on_event(event)
+                
+                self.selector.on_event(event)
+                
+            #pintamos el fondo de pantalla
+            self.__screen.fill((142, 204, 80))
             #pintamos el termometro en su posicion        
             self.__screen.blit(self.termometro.custome, (30, 34))
             #pintamos el cuadro de texto
             text = self.entrada.render() #Obtenemos el rectangulo blanco y lo asignamos a text
             pygame.draw.rect(self.__screen, (255, 255, 255), text[0]) #creamos el rectangulo blanco en su posicion y tamaño posicion 
             self.__screen.blit(text[1], self.entrada.pos()) #pintamos la foto del texto
+            self.__screen.blit(self.selector.custome(), (150, 130)) #pintamos la foto del selector
             pygame.display.flip()
                     
                     
